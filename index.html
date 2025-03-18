@@ -1,54 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-<head>
-    <title>Firebase Auth</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-</head>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD2bSMb17h8_eNqPbxOT8N9BFPJrqPL-Qw",
+        authDomain: "group3cc-d3676.firebaseapp.com",
+        projectId: "group3cc-d3676",
+        storageBucket: "group3cc-d3676.firebasestorage.app",
+        messagingSenderId: "951967837196",
+        appId: "1:951967837196:web:bf859e82a8545c05f69229",
+        measurementId: "G-460SGX253D"
+    };
 
-<body>
-    <h2>User Authentication</h2>
-    <input type="email" id="email" placeholder="Enter email"><br>
-    <input type="password" id="password" placeholder="Enter password"><br>
-    <button onclick="register()">Register</button>
-    <button onclick="login()">Login</button>
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyD2bSMb17h8_eNqPbxOT8N9BFPJrqPL-Qw",
-            authDomain: "group3cc-d3676.firebaseapp.com",
-            projectId: "group3cc-d3676",
-            storageBucket: "group3cc-d3676.firebasestorage.app",
-            messagingSenderId: "951967837196",
-            appId: "1:951967837196:web:bf859e82a8545c05f69229",
-            measurementId: "G-460SGX253D"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        async function register() {
-            let email = document.getElementById("email").value;
-            let password = document.getElementById("password").value;
-            try {
-                let userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                alert("User registered successfully!");
-            } catch (error) {
-                alert(error.message);
-            }
+    // Register function
+    async function register() {
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+        try {
+            let userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            alert("User registered successfully!");
+        } catch (error) {
+            alert(error.message);
         }
+    }
 
-        async function login() {
-            let email = document.getElementById("email").value;
-            let password = document.getElementById("password").value;
-            try {
-                let userCredential = await auth.signInWithEmailAndPassword(email, password);
-                alert("Login successful!");
-            } catch (error) {
-                alert(error.message);
-            }
+    // Login function
+    async function login() {
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+        try {
+            let userCredential = await signInWithEmailAndPassword(auth, email, password);
+            alert("Login successful!");
+        } catch (error) {
+            alert(error.message);
         }
-    </script>
-</body>
+    }
 
-</html>
+    // Attach functions to global scope
+    window.register = register;
+    window.login = login;
+</script>
