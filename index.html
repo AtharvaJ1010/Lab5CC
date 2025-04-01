@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firebase Authentication</title>
-<style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -16,14 +16,13 @@
             margin: 0;
         }
 
-        /* Smaller Box */
         .container {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
             text-align: center;
-            width: 300px; /* Standard login box size */
+            width: 300px;
         }
 
         h2 {
@@ -31,7 +30,6 @@
             margin-bottom: 15px;
         }
 
-        /* Stack elements vertically */
         .input-container {
             display: flex;
             flex-direction: column;
@@ -39,9 +37,9 @@
         }
 
         input {
-            width: calc(100% - 20px); /* Full width with padding */
+            width: calc(100% - 20px);
             padding: 10px;
-            margin: 10px auto; /* Space between inputs */
+            margin: 10px auto;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
@@ -68,8 +66,8 @@
             color: white;
         }
 
-        #logoutBtn {
-            background-color: #f44336;
+        #fetchUserBtn {
+            background-color: #ffa500;
             color: white;
             display: none;
         }
@@ -80,24 +78,27 @@
     </style>
 </head>
 <body>
- <div class="container">
-    <h2>User Authentication</h2>
-    <div class="input-container">
-    <input type="email" id="email" placeholder="Enter email"><br>
-    <input type="password" id="password" placeholder="Enter password"><br>
+    <div class="container">
+        <h2>User Authentication</h2>
+        <div class="input-container">
+            <input type="text" id="name" placeholder="Enter name"><br>
+            <input type="email" id="email" placeholder="Enter email"><br>
+            <input type="password" id="password" placeholder="Enter password"><br>
+        </div>
+        <button id="registerBtn">Register</button>
+        <button id="loginBtn">Login</button>
+        <button id="fetchUserBtn">Fetch User Data</button>
     </div>
-    <button id="registerBtn">Register</button>
-    <button id="loginBtn">Login</button>
- </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         // Firebase configuration
-       const firebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyD2bSMb17h8_eNqPbxOT8N9BFPJrqPL-Qw",
             authDomain: "group3cc-d3676.firebaseapp.com",
             projectId: "group3cc-d3676",
@@ -105,35 +106,71 @@
             messagingSenderId: "951967837196",
             appId: "1:951967837196:web:bf859e82a8545c05f69229",
             measurementId: "G-460SGX253D"
-        };
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app); // ✅ FIXED: auth is properly initialized here
+        const auth = getAuth(app);
+        const db = getFirestore(app); // ✅ Firestore initialized
 
-        // Wait for the DOM to load before attaching event listeners
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("registerBtn").addEventListener("click", async function () {
-                let email = document.getElementById("email").value;
-                let password = document.getElementById("password").value;
-                try {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    alert("User registered successfully!");
-                } catch (error) {
-                    alert(error.message);
-                }
-            });
+        // Register User and Store in Firestore
+        document.getElementById("registerBtn").addEventListener("click", async function () {
+            let name = document.getElementById("name").value;
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
 
-            document.getElementById("loginBtn").addEventListener("click", async function () {
-                let email = document.getElementById("email").value;
-                let password = document.getElementById("password").value;
+            try {
+                let userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                let user = userCredential.user;
+
+                // Store user data in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name,
+                    email: email,
+                    createdAt: new Date()
+                });
+
+                alert("User registered successfully and stored in Firestore!");
+                document.getElementById("fetchUserBtn").style.display = "block";
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        // Login User
+        document.getElementById("loginBtn").addEventListener("click", async function () {
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+
+            try {
+                let userCredential = await signInWithEmailAndPassword(auth, email, password);
+                alert("Login successful!");
+                document.getElementById("fetchUserBtn").style.display = "block";
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        // Fetch User Data from Firestore
+        document.getElementById("fetchUserBtn").addEventListener("click", async function () {
+            const user = auth.currentUser;
+
+            if (user) {
                 try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    alert("Login successful!");
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        alert(`User Data: ${JSON.stringify(docSnap.data())}`);
+                    } else {
+                        alert("No user data found in Firestore.");
+                    }
                 } catch (error) {
-                    alert(error.message);
+                    alert("Error fetching user data: " + error.message);
                 }
-            });
+            } else {
+                alert("No user is logged in.");
+            }
         });
     </script>
 </body>
