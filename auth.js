@@ -9,19 +9,28 @@ const firebaseConfig = {
     measurementId: "G-460SGX253D"
 };
 
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore(); // Initialize Firestore
 
-// Register User
+// Register User and Add to Firestore
 function register() {
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
 
     auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
-            alert("User Registered Successfully!");
+            let user = userCredential.user;
+            
+            // Save user details to Firestore
+            return db.collection("users").doc(user.uid).set({
+                email: user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        })
+        .then(() => {
+            alert("User Registered Successfully and added to Firestore!");
         })
         .catch(error => {
             alert(error.message);
@@ -43,4 +52,24 @@ function login() {
         .catch(error => {
             alert(error.message);
         });
+}
+
+// Fetch User Data from Firestore
+function getUserData() {
+    let user = auth.currentUser;
+    if (user) {
+        db.collection("users").doc(user.uid).get()
+            .then(doc => {
+                if (doc.exists) {
+                    console.log("User Data:", doc.data());
+                } else {
+                    console.log("No user data found.");
+                }
+            })
+            .catch(error => {
+                console.log("Error getting user data:", error);
+            });
+    } else {
+        console.log("No user is logged in.");
+    }
 }
