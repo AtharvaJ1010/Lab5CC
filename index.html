@@ -72,6 +72,12 @@
             display: none;
         }
 
+        #googleLoginBtn {
+            background-color: #DB4437;
+            color: white;
+            display: none;
+        }
+
         button:hover {
             opacity: 0.8;
         }
@@ -87,6 +93,7 @@
         </div>
         <button id="registerBtn">Register</button>
         <button id="loginBtn">Login</button>
+        <button id="googleLoginBtn">Login with Google</button>
         <button id="fetchUserBtn">Fetch User Data</button>
     </div>
 
@@ -94,7 +101,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         // Firebase configuration
@@ -145,6 +152,19 @@
             try {
                 let userCredential = await signInWithEmailAndPassword(auth, email, password);
                 alert("Login successful!");
+                document.getElementById("fetchUserBtn").style.display = "block";
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        // Login with Google
+        document.getElementById("googleLoginBtn").addEventListener("click", async function () {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                alert("Google Login successful! Welcome " + user.displayName);
                 document.getElementById("fetchUserBtn").style.display = "block";
             } catch (error) {
                 alert(error.message);
