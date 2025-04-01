@@ -53,6 +53,18 @@ function login() {
             alert(error.message);
         });
 }
+// Login with Google
+document.getElementById("googleLoginBtn").addEventListener("click", async function () {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        alert("Google Login successful! Welcome " + user.displayName);
+        document.getElementById("fetchUserBtn").style.display = "block";
+    } catch (error) {
+        alert(error.message);
+    }
+});
 
 // Fetch User Data from Firestore
 function getUserData() {
