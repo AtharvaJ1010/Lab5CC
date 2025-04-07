@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore(); // Initialize Firestore
+    const db = firebase.firestore();
 
     // Register User and Save to Firestore
     document.getElementById("registerBtn").addEventListener("click", async function () {
@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
             let userCredential = await auth.createUserWithEmailAndPassword(email, password);
             let user = userCredential.user;
 
-            // Save user data in Firestore
             await db.collection("users").doc(user.uid).set({
                 email: user.email,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -46,7 +45,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Fetch User Data from Firestore
+    // Google Authentication
+    document.getElementById("googleLoginBtn").addEventListener("click", async function () {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const result = await auth.signInWithPopup(provider);
+            const user = result.user;
+
+            // Save or update user data in Firestore
+            await db.collection("users").doc(user.uid).set({
+                name: user.displayName,
+                email: user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            alert("Google Login successful! Welcome " + user.displayName);
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    // Fetch User Data
     document.getElementById("fetchUserDataBtn").addEventListener("click", async function () {
         let user = auth.currentUser;
         if (user) {
