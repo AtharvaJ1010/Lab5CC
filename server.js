@@ -64,3 +64,34 @@ app.get("/user/:uid", async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Verify Google ID Token sent from frontend
+app.post("/google-login", async (req, res) => {
+    try {
+        const { idToken } = req.body;
+
+        // Verify the ID token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const { uid, email, name } = decodedToken;
+
+        // Check if user exists in Firestore, if not, add them
+        const userRef = db.collection("users").doc(uid);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            await userRef.set({
+                email,
+                name: name || "", // name might be undefined
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        res.status(200).json({
+            message: "Google login verified successfully",
+            uid,
+            email
+        });
+    } catch (error) {
+        res.status(401).json({ error: "Invalid or expired token", details: error.message });
+    }
+});
