@@ -72,10 +72,25 @@
             display: none;
         }
 
-        #googleLoginBtn {
-            background-color: #DB4437;
-            color: white;
-            display: none;
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            color: #444;
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .google-btn img {
+            height: 20px;
+            margin-right: 10px;
         }
 
         button:hover {
@@ -93,7 +108,10 @@
         </div>
         <button id="registerBtn">Register</button>
         <button id="loginBtn">Login</button>
-        <button id="googleLoginBtn">Login with Google</button>
+        <button id="googleLoginBtn" class="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+            Sign in with Google
+        </button>
         <button id="fetchUserBtn">Fetch User Data</button>
     </div>
 
@@ -118,7 +136,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app); // ✅ Firestore initialized
+        const db = getFirestore(app);
 
         // Register User and Store in Firestore
         document.getElementById("registerBtn").addEventListener("click", async function () {
@@ -164,6 +182,14 @@
             try {
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
+
+                // Optionally save Google user data in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: user.displayName,
+                    email: user.email,
+                    createdAt: new Date()
+                });
+
                 alert("Google Login successful! Welcome " + user.displayName);
                 document.getElementById("fetchUserBtn").style.display = "block";
             } catch (error) {
